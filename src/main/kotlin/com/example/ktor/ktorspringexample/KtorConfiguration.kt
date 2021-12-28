@@ -63,7 +63,6 @@ fun Application.webConfig() {
 
 
 fun Application.routes() {
-    // can use kodein here
     routing {
         val collection: MongoCollection<Jedi> = getGenericBean(MongoCollection::class.java, Jedi::class.java)
 
