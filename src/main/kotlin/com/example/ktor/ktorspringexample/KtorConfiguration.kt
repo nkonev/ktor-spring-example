@@ -31,7 +31,7 @@ public fun <T>Application.getBean(requiredType: Class<T>) : T {
 public fun <T>Application.getGenericBean(clazz: Class<*>, vararg generics : Class<*>) : T {
     val type : ResolvableType = ResolvableType.forClassWithGenerics(clazz, *generics)
     val provider: ObjectProvider<T> = springContext().getBeanProvider(type)
-    return provider.getObject() as T
+    return provider.getObject()
 }
 
 /**
