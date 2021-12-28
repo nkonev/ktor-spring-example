@@ -5,16 +5,16 @@ import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import org.slf4j.LoggerFactory
+import org.springframework.boot.CommandLineRunner
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.SmartLifecycle
 import org.springframework.stereotype.Component
-import kotlin.concurrent.thread
 
 public val SpringApplicationContextKey: AttributeKey<ApplicationContext> = AttributeKey<ApplicationContext>("SpringApplicationContext")
 
 @Component
-class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplicationContext) : SmartLifecycle {
+class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplicationContext) : SmartLifecycle, CommandLineRunner {
 
     private val log = LoggerFactory.getLogger(KtorSpringAdapter::class.java)
 
@@ -23,20 +23,13 @@ class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplica
 
     private lateinit var embeddedServer: CIOApplicationEngine
 
-    /**
-     * CIO engine entry point
-     */
+    // Initialize Ktor engine
     override fun start() {
         embeddedServer = embeddedServer(CIO, port = 8098, configure = {  } ) {
             springConfig(configurableApplicationContext)
             webConfig()
             routes()
         }
-
-        thread(name = "ktorHolder") {
-            embeddedServer.start(wait = true)
-        }
-        this.running = true
     }
 
     override fun stop() {
@@ -48,5 +41,11 @@ class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplica
 
     override fun isRunning(): Boolean {
        return running
+    }
+
+    override fun run(vararg args: String?) {
+        log.info("Synchronously starting Ktor")
+        this.running = true
+        embeddedServer.start(wait = true)
     }
 }
