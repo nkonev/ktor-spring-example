@@ -12,7 +12,7 @@ import org.litote.kmongo.* //NEEDED! import KMongo extensions
 @Configuration
 class MongoConfiguration {
 
-    @Bean
+    @Bean(destroyMethod = "close")
     fun mongoClient() = KMongo.createClient("mongodb://localhost:27017")
 
     @Bean
