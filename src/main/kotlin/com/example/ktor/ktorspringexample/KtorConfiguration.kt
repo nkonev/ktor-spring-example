@@ -27,7 +27,7 @@ public fun Application.springContext() = attributes[SpringApplicationContextKey]
 /**
  * Module that just registers the root path / and replies with a text.
  */
-fun Application.module() {
+fun Application.webConfig() {
     val env = environment.config.propertyOrNull("ktor.custom")?.getString()
     log.info("Got custom variable $env")
 
@@ -45,7 +45,10 @@ fun Application.module() {
             serializer = JacksonSessionSerializer(UserSession::class.java)
         }
     }
+}
 
+
+fun Application.routes() {
     // can use kodein here
     routing {
         val type : ResolvableType = ResolvableType.forClassWithGenerics(MongoCollection::class.java, Jedi::class.java)
