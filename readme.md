@@ -39,5 +39,5 @@ curl -i -X POST 'http://localhost:8098/mongo'
 
 # Get from mongo
 ```
-curl -i  'http://localhost:8098/mongo'
+curl -i 'http://localhost:8098/mongo'
 ```

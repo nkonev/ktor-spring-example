@@ -12,6 +12,7 @@ import io.ktor.sessions.*
 import org.litote.kmongo.eq
 import org.litote.kmongo.findOne
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.ResolvableType
 import redis.clients.jedis.JedisPool
 
@@ -36,6 +37,10 @@ public fun <T>Application.getGenericBean(clazz: Class<*>, vararg generics : Clas
 /**
  * Module that just registers the root path / and replies with a text.
  */
+fun Application.springConfig(configurableApplicationContext: ConfigurableApplicationContext) {
+    attributes.put(SpringApplicationContextKey, configurableApplicationContext)
+}
+
 fun Application.webConfig() {
     val env = environment.config.propertyOrNull("ktor.custom")?.getString()
     log.info("Got custom variable $env")
