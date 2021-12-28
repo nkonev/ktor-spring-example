@@ -31,3 +31,13 @@ docker exec -it ktor-sandbox_mongo_1 mongosh
 ```
 kill -2 $(ps -ef | grep SandboxApplication | grep -v 'grep' | awk '{print $2}')
 ```
+
+# Save to mongo
+```
+curl -i -X POST 'http://localhost:8098/mongo'
+```
+
+# Get from mongo
+```
+curl -i  'http://localhost:8098/mongo'
+```

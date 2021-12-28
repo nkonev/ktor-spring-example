@@ -22,7 +22,16 @@ data class UserSession(val id: String, val count: Int)
 data class Jedi(val name: String, val age: Int)
 
 public fun Application.springContext() = attributes[SpringApplicationContextKey]
-//public fun getBean
+
+public fun <T>Application.getBean(requiredType: Class<T>) : T {
+    return springContext().getBean(requiredType)
+}
+
+public fun <T>Application.getGenericBean(clazz: Class<*>, vararg generics : Class<*>) : T {
+    val type : ResolvableType = ResolvableType.forClassWithGenerics(clazz, *generics)
+    val provider: ObjectProvider<T> = springContext().getBeanProvider(type)
+    return provider.getObject() as T
+}
 
 /**
  * Module that just registers the root path / and replies with a text.
@@ -39,7 +48,7 @@ fun Application.webConfig() {
         jackson()
     }
     install(Sessions) {
-        val redisPool = springContext().getBean(JedisPool::class.java)
+        val redisPool = getBean(JedisPool::class.java)
 
         cookie<UserSession>("user_session", storage = RedisSessionStorage(redisPool)) {
             serializer = JacksonSessionSerializer(UserSession::class.java)
@@ -51,9 +60,7 @@ fun Application.webConfig() {
 fun Application.routes() {
     // can use kodein here
     routing {
-        val type : ResolvableType = ResolvableType.forClassWithGenerics(MongoCollection::class.java, Jedi::class.java)
-        val provider: ObjectProvider<MongoCollection<Jedi>> = springContext().getBeanProvider(type)
-        val collection: MongoCollection<Jedi> = provider.getObject()
+        val collection: MongoCollection<Jedi> = getGenericBean(MongoCollection::class.java, Jedi::class.java)
 
         get("/") {
             call.respondText("Hello World!")
