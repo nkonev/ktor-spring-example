@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.coroutineContext
+import redis.clients.jedis.JedisPool
 
 abstract class SimplifiedSessionStorage : SessionStorage {
     abstract suspend fun read(id: String): String?
@@ -32,4 +33,25 @@ private suspend fun ByteReadChannel.readAvailable(): String {
         data.write(temp, 0, read)
     }
     return String(data.toByteArray())
+}
+
+class RedisSessionStorage(private val jedisPool: JedisPool) : SimplifiedSessionStorage() {
+
+    override suspend fun read(id: String): String? {
+        jedisPool.resource.use {
+            return it.get(id)
+        }
+    }
+
+    override suspend fun write(id: String, data: String?) {
+        jedisPool.resource.use {
+            it.set(id, data)
+        }
+    }
+
+    override suspend fun invalidate(id: String) {
+        jedisPool.resource.use {
+            it.del(id)
+        }
+    }
 }
