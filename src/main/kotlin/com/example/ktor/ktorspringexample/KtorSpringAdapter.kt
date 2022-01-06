@@ -4,7 +4,7 @@ import io.ktor.samples.sandbox.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
@@ -31,7 +31,7 @@ class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplica
         // we use non-daemonized threads for Ktor's coroutines in toder to application won't exit by itself until user call kill -2
         val nonDaemonizedCoroutineDispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
 
-        GlobalScope.launch(nonDaemonizedCoroutineDispatcher) {
+        CoroutineScope(nonDaemonizedCoroutineDispatcher).launch {
             embeddedServer = embeddedServer(CIO, port = 8098, configure = {  } ) {
                 springConfig(configurableApplicationContext)
                 webConfig()
