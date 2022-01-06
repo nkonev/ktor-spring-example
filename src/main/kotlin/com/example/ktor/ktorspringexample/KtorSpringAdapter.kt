@@ -28,7 +28,7 @@ class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplica
 
     // Initialize Ktor engine
     override fun start() {
-        // we use non-daemonized threads for Ktor's coroutines in order to application won't exit by itself until user call kill -2
+        // we use non-daemonized threads for Ktor's coroutines in order to application won't exit by itself until user calls kill -2
         val nonDaemonizedCoroutineDispatcher = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()).asCoroutineDispatcher()
 
         CoroutineScope(nonDaemonizedCoroutineDispatcher).launch {
