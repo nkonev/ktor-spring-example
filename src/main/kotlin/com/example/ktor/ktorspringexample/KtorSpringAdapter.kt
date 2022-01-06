@@ -4,18 +4,20 @@ import io.ktor.samples.sandbox.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import org.springframework.boot.ApplicationArguments
-import org.springframework.boot.ApplicationRunner
 import org.springframework.context.ApplicationContext
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.SmartLifecycle
 import org.springframework.stereotype.Component
+import java.util.concurrent.Executors
 
 public val SpringApplicationContextKey: AttributeKey<ApplicationContext> = AttributeKey<ApplicationContext>("SpringApplicationContext")
 
 @Component
-class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplicationContext) : SmartLifecycle, ApplicationRunner {
+class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplicationContext) : SmartLifecycle {
 
     private val log = LoggerFactory.getLogger(KtorSpringAdapter::class.java)
 
@@ -26,11 +28,19 @@ class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplica
 
     // Initialize Ktor engine
     override fun start() {
-        embeddedServer = embeddedServer(CIO, port = 8098, configure = {  } ) {
-            springConfig(configurableApplicationContext)
-            webConfig()
-            routes()
+        // we use non-daemonized threads for Ktor's coroutines in toder to application won't exit by itself until user call kill -2
+        val nonDaemonizedCoroutineDispatcher = Executors.newFixedThreadPool(4).asCoroutineDispatcher()
+
+        GlobalScope.launch(nonDaemonizedCoroutineDispatcher) {
+            embeddedServer = embeddedServer(CIO, port = 8098, configure = {  } ) {
+                springConfig(configurableApplicationContext)
+                webConfig()
+                routes()
+            }
+            embeddedServer.start(wait = false)
+            running = true
         }
+        log.info("Ktor engine is staring in another threads")
     }
 
     override fun stop() {
@@ -42,11 +52,5 @@ class KtorSpringAdapter(val configurableApplicationContext : ConfigurableApplica
 
     override fun isRunning(): Boolean {
        return running
-    }
-
-    override fun run(args: ApplicationArguments?) {
-        log.info("Synchronously starting Ktor")
-        this.running = true
-        embeddedServer.start(wait = true)
     }
 }
